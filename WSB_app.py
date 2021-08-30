@@ -23,21 +23,9 @@ def grab_html():
         url = 'https://www.reddit.com/r/wallstreetbets/search/?q=flair%3A%22Daily%20Discussion%22&restrict_sr=1&sort=new%27'
         
     else:
-        url = 'https://www.reddit.com/r/wallstreetbets/?f=flair_name%3A%22Weekend%20Discussion%22&sort=new%27'
+        url = 'https://www.reddit.com/r/wallstreetbets/search/?q=flair%3A%22Weekend%20Discussion%22&restrict_sr=1&sort=new%27'
     
-    PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
-    #DRIVER_BIN = os.path.join(PROJECT_ROOT, "chromedriver")
-
-
-    # driver = webdriver.Chrome(executable_path = DRIVER_BIN)
-
-    # GOOGLE_CHROME_PATH = '/app/.apt/usr/bin/google_chrome'
-    # CHROMEDRIVER_PATH = '/app/.chromedriver/bin/chromedriver'
-    # chrome_options = webdriver.ChromeOptions()
-    # chrome_options.add_argument('--disable-gpu')
-    # chrome_options.add_argument('--no-sandbox')
-    # chrome_options.binary_location = GOOGLE_CHROME_PATH
-    # browser = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=chrome_options)
+   
     CHROMEDRIVER_PATH = "/app/.chromedriver/bin/chromedriver"
     chrome_bin = os.environ.get('GOOGLE_CHROME_BIN', 'chromedriver')
     options = webdriver.ChromeOptions()
@@ -59,7 +47,6 @@ def grab_link(driver):
     links = driver.find_elements_by_xpath('//*[@class="_eYtD2XCVieq6emjKBH3m"]')
     
     for a in links:
-        #print(a.text)
         if a.text.startswith('Daily Discussion Thread'):
             DATE = ''.join(a.text.split(' ')[-3:])
             print(f'DATE: {DATE}')
@@ -79,11 +66,7 @@ def grab_link(driver):
             elif date.today().weekday() == 6:
                 friday = date.today() - timedelta(days=2)
             DATE = ''.join(a.text.split(' ')[-3:])
-            parsed = parse(DATE) 
-            # weekend_DATE = a.text.split(' ')
-            # parsed_DATE = weekend_DATE[-3] + ' ' + weekend_DATE[-2].split('-')[1] + weekend_DATE[-1]
-            # parsed = parse(parsed_DATE) 
-            # saturday = weekend_DATE[-3] + ' ' + str(int(weekend_DATE[-2].split('-')[1].replace(',','')) - 1) + ' ' + weekend_DATE[-1] 
+            parsed = parse(DATE)
             if parse(str(friday)) == parsed:
                 link = a.find_element_by_xpath('../..').get_attribute('href')
                 stock_link = link.split('/')[-3]
@@ -102,17 +85,18 @@ def grab_stocklist():
         stocks = w.readlines()
         for a in stocks:
             a = a.replace('\n','').replace('\t','')
-            #a = ' ' + a + ' '
             stocklist.append(a)
     #stocks_list = ['BABA','MSFT','SOFI','MVST','AMC','GME','AMZN','CLOV','BB','SPY','MRNA','QQQ']
 
-    blacklist = ['I', 'A','DD','PT','MY','FOR','EOD','GO','TA','USA']
-    greylist = ['AI','ALL','ARE','ON','IT','F','SO','NOW']
+    # Remove common words from list of tickers
+
+    blacklist = ['I', 'A','DD','PT','MY','FOR','EOD','GO','TA','USA','AI','ALL','ARE','ON','IT','F','SO','NOW']
+    #greylist = []
 
     for stock in blacklist:
         stocklist.remove(stock)
-    for stock in greylist:
-        stocklist.remove(stock)
+    # for stock in greylist:
+    #     stocklist.remove(stock)
 
     return stocklist
 
@@ -128,16 +112,15 @@ def get_comments(comment_list):
     for i in range(1,len(comment_list)+1):
 
         string += l.pop() + ','
-        if i % 500 == 0:
+        if i % 650 == 0:
             html = requests.get(f'https://api.pushshift.io/reddit/comment/search?ids={string}&fields=body&limit=1000')
             html_list.append(html.json())
-            # print('CP3')
     
             string = ''
             
-    #Getting last chunk leftover, not divisible by 1000
+    #Getting last chunk leftover, not divisible by 650
+
     if string:
-        #string_list.append(string)
         html = requests.get(f'https://api.pushshift.io/reddit/comment/search?ids={string}&fields=body&limit=1000')
         html_list.append(html.json())
             
@@ -160,19 +143,6 @@ def get_stock_list(newcomments,stocks_list):
 
     return stock_dict
 
-# def grab_stock_count(stock_dict,raw_comment_list):
-#     orig_list = np.array(raw_comment_list['data'])
-#     remove_me = slice(0,1000)
-#     cleaned = np.delete(orig_list, remove_me)
-#     i = 0
-#     while i < len(cleaned):
-#         print(len(cleaned))
-#         cleaned = np.delete(cleaned, remove_me)
-#         new_comments_list = ",".join(cleaned[0:1000])
-#         newcomments = get_comments(new_comments_list)
-#         get_stock_list(newcomments,stocks_list)
-#     stock = dict(stock_dict)
-#     return stock
 
 if __name__ == "__main__":
     driver = grab_html()
@@ -183,8 +153,6 @@ if __name__ == "__main__":
     new_comments = get_comments(comment_list)
   
     stock_dict = get_stock_list(new_comments,stocks_list)
-    print(stock_dict)
- 
     #stock_dict = {'HOOD': 62, 'NVDA': 59, 'TSLA': 58, 'PFE': 52, 'TLRY': 33, 'AMD': 32, 'BABA': 11}
 
     df = pd.DataFrame()
@@ -193,7 +161,6 @@ if __name__ == "__main__":
     df = df.sort_values(by=['mentions'], ascending=False, ignore_index=True)
     df = df.head(10)
 
-    
     image = Image.open('wsb.jpeg')
     
 
@@ -248,9 +215,7 @@ if __name__ == "__main__":
         tickerData = yf.Ticker(tickerSymbol)
         #get the historical prices for this ticker
         tickerDf = tickerData.history( start=date.today() - timedelta(days=30), end=date.today())
- 
 
-        #st.line_chart(tickerDf.Close)
 
         tickerDf = tickerDf.reset_index()
         for i in ['Open', 'High', 'Close', 'Low']: 
