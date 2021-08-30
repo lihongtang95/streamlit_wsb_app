@@ -17,9 +17,9 @@ from PIL import Image
 
 def grab_html():
     
-    #If today is MON, SAT, or SUN, then we get data from a weekend discussion thread. Else, daily.
+    #If today is MON or SUN then we get data from a weekend discussion thread. Else, daily.
 
-    if date.today().weekday() in (1,2,3,4):
+    if date.today().weekday() in (1,2,3,4,5):
         url = 'https://www.reddit.com/r/wallstreetbets/search/?q=flair%3A%22Daily%20Discussion%22&restrict_sr=1&sort=new%27'
         
     else:
@@ -35,7 +35,6 @@ def grab_html():
     options.add_argument('--headless')
     browser = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, chrome_options=options)
 
-
     browser.get(url)
 
     return browser
@@ -49,9 +48,8 @@ def grab_link(driver):
     for a in links:
         if a.text.startswith('Daily Discussion Thread'):
             DATE = ''.join(a.text.split(' ')[-3:])
-            print(f'DATE: {DATE}')
+            #print(f'DATE: {DATE}')
             parsed = parse(DATE) 
-            print(parsed)
             if parse(str(yesterday)) == parsed:
                 link = a.find_element_by_xpath('../..').get_attribute('href')
                 stock_link = link.split('/')[-3]
@@ -61,8 +59,8 @@ def grab_link(driver):
         if a.text.startswith('Weekend'):
             if date.today().weekday() == 0:
                 friday = date.today() - timedelta(days=3)
-            elif date.today().weekday() == 5:
-                friday = date.today() - timedelta(days=1)
+            # elif date.today().weekday() == 5:
+            #     friday = date.today() - timedelta(days=1)
             elif date.today().weekday() == 6:
                 friday = date.today() - timedelta(days=2)
             DATE = ''.join(a.text.split(' ')[-3:])
@@ -112,13 +110,13 @@ def get_comments(comment_list):
     for i in range(1,len(comment_list)+1):
 
         string += l.pop() + ','
-        if i % 650 == 0:
+        if i % 600 == 0:
             html = requests.get(f'https://api.pushshift.io/reddit/comment/search?ids={string}&fields=body&limit=1000')
             html_list.append(html.json())
     
             string = ''
             
-    #Getting last chunk leftover, not divisible by 650
+    #Getting last chunk leftover, not divisible by 600
 
     if string:
         html = requests.get(f'https://api.pushshift.io/reddit/comment/search?ids={string}&fields=body&limit=1000')
@@ -230,9 +228,6 @@ if __name__ == "__main__":
         st.plotly_chart(fig, use_container_width=True)
 
 
-        # st.write("""
-        # Volume
-        # """)
         col1, col2, col3 = st.columns([1,6,1])
 
         with col1:
