@@ -1,4 +1,4 @@
-# streamlit
+# streamlit_wsb_app
 
 DISCLAIMER: The heroku app can take a minute to load. The number of comments per pushshift request is limited, and larger discussion threads can have upwards of 10,000 comments.
 
