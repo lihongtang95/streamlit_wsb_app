@@ -131,8 +131,8 @@ def get_comments(comment_list):
     for i in range(1,len(comment_list)+1):
 
         string += l.pop() + ','
-        if i % 500 == 0:
-            html = requests.get(f'https://api.pushshift.io/reddit/comment/search?ids={string}&fields=body&limit=1000')
+        if i % 300 == 0:
+            html = requests.get(f'https://api.pushshift.io/reddit/comment/search?ids={string}&fields=body')
             html_list.append(html.json())
     
             string = ''
@@ -140,7 +140,7 @@ def get_comments(comment_list):
     #Getting last chunk leftover, not divisible by 600
 
     if string:
-        html = requests.get(f'https://api.pushshift.io/reddit/comment/search?ids={string}&fields=body&limit=1000')
+        html = requests.get(f'https://api.pushshift.io/reddit/comment/search?ids={string}&fields=body&limit')
         html_list.append(html.json())
             
     return html_list
