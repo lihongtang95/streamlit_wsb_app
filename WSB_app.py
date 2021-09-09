@@ -19,7 +19,7 @@ DATALAG = 7
 
 def grab_html():
     
-    #If today is MON or SUN then we get data from a weekend discussion thread. Else, daily.
+    #If today is MON 0 or SUN 6 then we get data from a weekend discussion thread. Else, daily.
 
     global DATALAG
 
@@ -52,7 +52,7 @@ def grab_link(driver):
 
     global DATALAG
 
-    yesterday = date.today() - timedelta(days=1+DATALAG)
+    yesterday_sub_lag = date.today() - timedelta(days=1+DATALAG)
     links = driver.find_elements_by_xpath('//*[@class="_eYtD2XCVieq6emjKBH3m"]')
     
     for a in links:
@@ -60,32 +60,31 @@ def grab_link(driver):
             DATE = ''.join(a.text.split(' ')[-3:])
             #print(f'DATE: {DATE}')
             parsed = parse(DATE) 
-            if parse(str(yesterday)) == parsed:
+            if parse(str(yesterday_sub_lag)) == parsed:
                 link = a.find_element_by_xpath('../..').get_attribute('href')
                 stock_link = link.split('/')[-3]
                 driver.close() 
                 return stock_link, link
     
         if a.text.startswith('Weekend'):
+            #0 6
+            if date.today() - timedelta(days=DATALAG) == 0:
+                friday = date.today() - timedelta(days=3+DATALAG)
+            elif date.today() - timedelta(days=DATALAG) == 6:
+                friday = date.today() - timedelta(days=2+DATALAG)
+            else:
+                print('uh oh!')
+            
+            DATE = ''.join(a.text.split(' ')[-3:])
+            parsed = parse(DATE)
 
-            link = a.find_element_by_xpath('../..').get_attribute('href')
-            stock_link = link.split('/')[-3]
-            driver.close() 
-            return stock_link, link
-            # if (yesterday + timedelta(days=1)).weekday()  == 0:
-            #     friday = date.today() - timedelta(days=3+DATALAG)
-            # elif (yesterday + timedelta(days=1)).weekday()  == 5:
-            #     friday = date.today() - timedelta(days=1+DATALAG)
-            # elif (yesterday + timedelta(days=1)).weekday()  == 6:
-            #     friday = date.today() - timedelta(days=2+DATALAG)
-            # DATE = ''.join(a.text.split(' ')[-3:])
-            # parsed = parse(DATE)
-            # if parse(str(friday)) == parsed:
-            #     link = a.find_element_by_xpath('../..').get_attribute('href')
-            #     stock_link = link.split('/')[-3]
-            #     driver.close() 
-            #     return stock_link, link
+            if parse(str(friday)) == parsed:
+                link = a.find_element_by_xpath('../..').get_attribute('href')
+                stock_link = link.split('/')[-3]
+                driver.close() 
+                return stock_link, link
     
+            
 
 def grab_commentid_list(stock_link):
     html = requests.get(f'https://api.pushshift.io/reddit/submission/comment_ids/{stock_link}')
@@ -125,7 +124,7 @@ def get_comments(comment_list):
     for i in range(1,len(comment_list)+1):
 
         string += l.pop() + ','
-        if i % 600 == 0:
+        if i % 500 == 0:
             html = requests.get(f'https://api.pushshift.io/reddit/comment/search?ids={string}&fields=body&limit=1000')
             html_list.append(html.json())
     
