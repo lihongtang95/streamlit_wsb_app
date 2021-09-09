@@ -68,9 +68,9 @@ def grab_link(driver):
     
         if a.text.startswith('Weekend'):
             #0 6
-            if date.today() - timedelta(days=DATALAG) == 0:
+            if (date.today() - timedelta(days=DATALAG)).weekday() == 0:
                 friday = date.today() - timedelta(days=3+DATALAG)
-            elif date.today() - timedelta(days=DATALAG) == 6:
+            elif (date.today() - timedelta(days=DATALAG)).weekday() == 6:
                 friday = date.today() - timedelta(days=2+DATALAG)
             else:
                 print('uh oh!')
