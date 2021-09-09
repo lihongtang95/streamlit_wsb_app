@@ -68,19 +68,24 @@ def grab_link(driver):
                 return stock_link, link
     
         if a.text.startswith('Weekend'):
-            if (yesterday + timedelta(days=1)).weekday()  == 0:
-                friday = date.today() - timedelta(days=3+DATALAG)
-            elif (yesterday + timedelta(days=1)).weekday()  == 5:
-                friday = date.today() - timedelta(days=1+DATALAG)
-            elif (yesterday + timedelta(days=1)).weekday()  == 6:
-                friday = date.today() - timedelta(days=2+DATALAG)
-            DATE = ''.join(a.text.split(' ')[-3:])
-            parsed = parse(DATE)
-            if parse(str(friday)) == parsed:
-                link = a.find_element_by_xpath('../..').get_attribute('href')
-                stock_link = link.split('/')[-3]
-                driver.close() 
-                return stock_link, link
+
+            link = a.find_element_by_xpath('../..').get_attribute('href')
+            stock_link = link.split('/')[-3]
+            driver.close() 
+            return stock_link, link
+            # if (yesterday + timedelta(days=1)).weekday()  == 0:
+            #     friday = date.today() - timedelta(days=3+DATALAG)
+            # elif (yesterday + timedelta(days=1)).weekday()  == 5:
+            #     friday = date.today() - timedelta(days=1+DATALAG)
+            # elif (yesterday + timedelta(days=1)).weekday()  == 6:
+            #     friday = date.today() - timedelta(days=2+DATALAG)
+            # DATE = ''.join(a.text.split(' ')[-3:])
+            # parsed = parse(DATE)
+            # if parse(str(friday)) == parsed:
+            #     link = a.find_element_by_xpath('../..').get_attribute('href')
+            #     stock_link = link.split('/')[-3]
+            #     driver.close() 
+            #     return stock_link, link
     
 
 def grab_commentid_list(stock_link):
