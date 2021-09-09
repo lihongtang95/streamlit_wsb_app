@@ -15,7 +15,7 @@ from PIL import Image
 
 # DATALAG default to 0
 # If PushShift is behind, set to more than 0
-DATALAG = 7
+DATALAG = 3
 
 def grab_html():
     
