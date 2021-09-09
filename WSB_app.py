@@ -30,7 +30,8 @@ def grab_html():
         url = 'https://www.reddit.com/r/wallstreetbets/search/?q=flair%3A%22Daily%20Discussion%22&restrict_sr=1&sort=new%27'
         
     else:
-        url = 'https://www.reddit.com/r/wallstreetbets/search/?q=flair%3A%22Weekend%20Discussion%22&restrict_sr=1&sort=new%27'
+        url = 'https://www.reddit.com/r/wallstreetbets/search/?q=flair%3A%22Daily%20Discussion%22&restrict_sr=1&sort=new%27'
+        # url = 'https://www.reddit.com/r/wallstreetbets/search/?q=flair%3A%22Weekend%20Discussion%22&restrict_sr=1&sort=new%27'
     
    
     CHROMEDRIVER_PATH = "/app/.chromedriver/bin/chromedriver"
@@ -46,17 +47,23 @@ def grab_html():
 
     return browser
 
-    
 
 def grab_link(driver):
 
     global DATALAG
 
-    yesterday_sub_lag = date.today() - timedelta(days=1+DATALAG)
+    
     links = driver.find_elements_by_xpath('//*[@class="_eYtD2XCVieq6emjKBH3m"]')
     
     for a in links:
         if a.text.startswith('Daily Discussion Thread'):
+            if (date.today() - timedelta(days=DATALAG)).weekday() == 0:
+                yesterday_sub_lag = date.today() - timedelta(days=3+DATALAG)
+            elif (date.today() - timedelta(days=DATALAG)).weekday() == 6:
+                yesterday_sub_lag = date.today() - timedelta(days=2+DATALAG)
+            else:
+                yesterday_sub_lag = date.today() - timedelta(days=1+DATALAG)
+           
             DATE = ''.join(a.text.split(' ')[-3:])
             #print(f'DATE: {DATE}')
             parsed = parse(DATE) 
@@ -124,7 +131,7 @@ def get_comments(comment_list):
     for i in range(1,len(comment_list)+1):
 
         string += l.pop() + ','
-        if i % 500 == 0:
+        if i % 700 == 0:
             html = requests.get(f'https://api.pushshift.io/reddit/comment/search?ids={string}&fields=body&limit=1000')
             html_list.append(html.json())
     
