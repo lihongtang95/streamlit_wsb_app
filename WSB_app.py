@@ -14,12 +14,20 @@ import plotly.graph_objects as go
 from PIL import Image
 
 
+# DATALAG default to 0
+# If PushShift is behind, set to more than 0
+DATALAG = 2
 
 def grab_html():
     
     #If today is MON or SUN then we get data from a weekend discussion thread. Else, daily.
 
-    if date.today().weekday() in (1,2,3,4,5):
+    global DATALAG
+
+    dateoffset = date.today().weekday() - DATALAG
+    days = [0,1,2,3,4,5,6]
+
+    if days[dateoffset] in (1,2,3,4,5):
         url = 'https://www.reddit.com/r/wallstreetbets/search/?q=flair%3A%22Daily%20Discussion%22&restrict_sr=1&sort=new%27'
         
     else:
@@ -42,7 +50,10 @@ def grab_html():
     
 
 def grab_link(driver):
-    yesterday = date.today() - timedelta(days=1)
+
+    global DATALAG
+
+    yesterday = date.today() - timedelta(days=1+DATALAG)
     links = driver.find_elements_by_xpath('//*[@class="_eYtD2XCVieq6emjKBH3m"]')
     
     for a in links:
@@ -57,12 +68,12 @@ def grab_link(driver):
                 return stock_link, link
     
         if a.text.startswith('Weekend'):
-            if date.today().weekday() == 0:
-                friday = date.today() - timedelta(days=3)
-            # elif date.today().weekday() == 5:
-            #     friday = date.today() - timedelta(days=1)
-            elif date.today().weekday() == 6:
-                friday = date.today() - timedelta(days=2)
+            if (yesterday + timedelta(days=1)).weekday()  == 0:
+                friday = date.today() - timedelta(days=3+DATALAG)
+            elif (yesterday + timedelta(days=1)).weekday()  == 5:
+                friday = date.today() - timedelta(days=1+DATALAG)
+            elif (yesterday + timedelta(days=1)).weekday()  == 6:
+                friday = date.today() - timedelta(days=2+DATALAG)
             DATE = ''.join(a.text.split(' ')[-3:])
             parsed = parse(DATE)
             if parse(str(friday)) == parsed:
@@ -88,7 +99,7 @@ def grab_stocklist():
 
     # Remove common words from list of tickers
 
-    blacklist = ['I', 'A','DD','PT','MY','FOR','EOD','GO','TA','USA','AI','ALL','ARE','ON','IT','F','SO','NOW']
+    blacklist = ['I','B','R','C','A','DD','PT','MY','ME','FOR','EOD','GO','TA','USA','AI','ALL','ARE','ON','IT','F','SO','NOW']
     #greylist = []
 
     for stock in blacklist:
@@ -180,6 +191,7 @@ if __name__ == "__main__":
 
     url= link
     st.markdown(url, unsafe_allow_html=True)
+    st.write("###")
     col1, col2, col3 = st.columns([2.5,6,1])
 
     with col1:
@@ -208,7 +220,7 @@ if __name__ == "__main__":
         # https://towardsdatascience.com/how-to-get-stock-data-using-python-c0de1df17e75
         #define the ticker symbol
         tickerSymbol = ticker
-        #print(tickerSymbol)
+
         #get data on this ticker
         tickerData = yf.Ticker(tickerSymbol)
         #get the historical prices for this ticker
