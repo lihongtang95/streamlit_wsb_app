@@ -15,7 +15,8 @@ from PIL import Image
 
 # DATALAG default to 0
 # If PushShift is behind, set to more than 0
-DATALAG = 3
+
+DATALAG = 4
 
 def grab_html():
     
@@ -28,10 +29,9 @@ def grab_html():
 
     if days[dateoffset] in (1,2,3,4,5):
         url = 'https://www.reddit.com/r/wallstreetbets/search/?q=flair%3A%22Daily%20Discussion%22&restrict_sr=1&sort=new%27'
-        
+
     else:
-        url = 'https://www.reddit.com/r/wallstreetbets/search/?q=flair%3A%22Daily%20Discussion%22&restrict_sr=1&sort=new%27'
-        # url = 'https://www.reddit.com/r/wallstreetbets/search/?q=flair%3A%22Weekend%20Discussion%22&restrict_sr=1&sort=new%27'
+        url = 'https://www.reddit.com/r/wallstreetbets/search/?q=flair%3A%22Weekend%20Discussion%22&restrict_sr=1&sort=new%27'
     
    
     CHROMEDRIVER_PATH = "/app/.chromedriver/bin/chromedriver"
@@ -131,7 +131,7 @@ def get_comments(comment_list):
     for i in range(1,len(comment_list)+1):
 
         string += l.pop() + ','
-        if i % 700 == 0:
+        if i % 500 == 0:
             html = requests.get(f'https://api.pushshift.io/reddit/comment/search?ids={string}&fields=body&limit=1000')
             html_list.append(html.json())
     
