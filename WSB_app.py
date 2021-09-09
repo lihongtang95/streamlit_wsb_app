@@ -6,7 +6,6 @@ from collections import Counter
 from datetime import date,timedelta
 from dateutil.parser import parse 
 import requests
-
 import pandas as pd
 import numpy as np
 import yfinance as yf
@@ -16,7 +15,7 @@ from PIL import Image
 
 # DATALAG default to 0
 # If PushShift is behind, set to more than 0
-DATALAG = 2
+DATALAG = 7
 
 def grab_html():
     
