@@ -109,8 +109,7 @@ def grab_stocklist():
 
     # Remove common words from list of tickers
 
-    blacklist = ['I','B','R','L','C','A','DD','PT','MY','ME','FOR','EOD','GO','TA','USA','AI','ALL',
-    'ARE','ON','IT','F','SO','NOW','BE','REE','CEO']
+    blacklist = ['I','B','R','L','C','A','DD','PT','MY','ME','FOR','EOD','GO','TA','USA','AI','ALL','ARE','ON','IT','F','SO','NOW','REE','CEO']
     #greylist = []
 
     for stock in blacklist:
@@ -132,7 +131,7 @@ def get_comments(comment_list):
     for i in range(1,len(comment_list)+1):
 
         string += l.pop() + ','
-        if i % 499 == 0:
+        if i % 444 == 0:
             html = requests.get(f'https://api.pushshift.io/reddit/comment/search?ids={string}&fields=body')
             html_list.append(html.json())
     
