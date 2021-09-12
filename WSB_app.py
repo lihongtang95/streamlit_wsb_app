@@ -16,7 +16,7 @@ from PIL import Image
 # DATALAG default to 0
 # If PushShift is behind, set to more than 0
 
-DATALAG = 0
+DATALAG = 1
 
 
 # Create a webdriver to navigate to WSB subreddit
@@ -176,7 +176,7 @@ def get_stock_list(newcomments,stocks_list):
 # Do everything
 
 if __name__ == "__main__":
-    
+
     driver = grab_html()
     stock_link, link = grab_link(driver)
     comment_list = grab_commentid_list(stock_link)
@@ -209,7 +209,7 @@ if __name__ == "__main__":
 
     st.write("###")
 
-    st.title(f'WSB daily trending stocks for {date.today().strftime("%m/%d")}')
+    st.title(f'WSB daily trending stocks for {date.today().strftime("%m/%d")}, {date.today().strftime("%Y")}' )
     st.write("#")
     
 
@@ -243,7 +243,7 @@ if __name__ == "__main__":
         tickerData = yf.Ticker(tickerSymbol)
 
         # Get the 30 day price history for ticker
-        tickerDf = tickerData.history( start=date.today() - timedelta(days=30), end=date.today())
+        tickerDf = tickerData.history(start=date.today() - timedelta(days=30), end=date.today())
 
 
         tickerDf = tickerDf.reset_index()
