@@ -18,6 +18,9 @@ from PIL import Image
 
 DATALAG = 0
 
+
+# Create a webdriver to navigate to WSB subreddit
+
 def grab_html():
     
     #If today is MON 0 or SUN 6 then we get data from a weekend discussion thread. Else, daily.
@@ -48,24 +51,22 @@ def grab_html():
     return browser
 
 
+# Getting the post ID of the daily or weekend thread to use with PushShift later
+
 def grab_link(driver):
 
     global DATALAG
 
-
     links = driver.find_elements_by_xpath('//*[@class="_eYtD2XCVieq6emjKBH3m"]')
     
     for a in links:
+
         if a.text.startswith('Daily Discussion Thread'):
-            if (date.today() - timedelta(days=DATALAG)).weekday() == 0:
-                yesterday_sub_lag = date.today() - timedelta(days=3+DATALAG)
-            elif (date.today() - timedelta(days=DATALAG)).weekday() == 6:
-                yesterday_sub_lag = date.today() - timedelta(days=2+DATALAG)
-            else:
-                yesterday_sub_lag = date.today() - timedelta(days=1+DATALAG)
+        
+            yesterday_sub_lag = date.today() - timedelta(days=1+DATALAG)
            
             DATE = ''.join(a.text.split(' ')[-3:])
-            #print(f'DATE: {DATE}')
+            
             parsed = parse(DATE) 
             if parse(str(yesterday_sub_lag)) == parsed:
                 link = a.find_element_by_xpath('../..').get_attribute('href')
@@ -74,7 +75,7 @@ def grab_link(driver):
                 return stock_link, link
     
         if a.text.startswith('Weekend'):
-            #0 6
+            
             if (date.today() - timedelta(days=DATALAG)).weekday() == 0:
                 friday = date.today() - timedelta(days=3+DATALAG)
             elif (date.today() - timedelta(days=DATALAG)).weekday() == 6:
@@ -92,11 +93,15 @@ def grab_link(driver):
                 return stock_link, link
     
             
+# Get list of comment IDs to search
 
 def grab_commentid_list(stock_link):
     html = requests.get(f'https://api.pushshift.io/reddit/submission/comment_ids/{stock_link}')
     raw_comment_list = html.json()
     return raw_comment_list
+
+
+# Prepare list of stocks to cross-reference with the comments
 
 def grab_stocklist():
     stocklist = []
@@ -107,7 +112,7 @@ def grab_stocklist():
             stocklist.append(a)
     #stocks_list = ['BABA','MSFT','SOFI','MVST','AMC','GME','AMZN','CLOV','BB','SPY','MRNA','QQQ']
 
-    # Remove common words from list of tickers
+    # Remove common English words from list of tickers
 
     blacklist = ['I','B','R','L','C','A','DD','PT','MY','ME','FOR','EOD','GO','TA','USA','AI','ALL','ARE','ON','IT','F','SO','NOW','REE','CEO']
     #greylist = []
@@ -120,6 +125,8 @@ def grab_stocklist():
     return stocklist
 
 
+# Use comment IDs to get comment text
+
 def get_comments(comment_list):
 
     comment_list = comment_list['data']
@@ -128,16 +135,18 @@ def get_comments(comment_list):
     string = ''
     #string_list = []
     html_list = []
+
     for i in range(1,len(comment_list)+1):
 
         string += l.pop() + ','
+
         if i % 444 == 0:
             html = requests.get(f'https://api.pushshift.io/reddit/comment/search?ids={string}&fields=body')
             html_list.append(html.json())
-    
+
             string = ''
             
-    #Getting last chunk leftover, not divisible
+    #Getting last chunk leftover, not divisible by request size
 
     if string:
         html = requests.get(f'https://api.pushshift.io/reddit/comment/search?ids={string}&fields=body')
@@ -146,6 +155,7 @@ def get_comments(comment_list):
     return html_list
         
 
+# Count a stock if it matches a ticker in stock list
 
 def get_stock_list(newcomments,stocks_list):
     stock_dict = Counter()
@@ -163,7 +173,10 @@ def get_stock_list(newcomments,stocks_list):
     return stock_dict
 
 
+# Do everything
+
 if __name__ == "__main__":
+    
     driver = grab_html()
     stock_link, link = grab_link(driver)
     comment_list = grab_commentid_list(stock_link)
@@ -180,6 +193,8 @@ if __name__ == "__main__":
     df = df.sort_values(by=['mentions'], ascending=False, ignore_index=True)
     df = df.head(10)
 
+    # Putting everything together
+
     image = Image.open('wsb.jpeg')
     
 
@@ -187,12 +202,11 @@ if __name__ == "__main__":
 
     with col1:
         pass
-
     with col2:
         st.image(image)
-
     with col3:
         pass
+
     st.write("###")
 
     st.title(f'WSB daily trending stocks for {date.today().strftime("%m/%d")}')
@@ -206,14 +220,11 @@ if __name__ == "__main__":
 
     with col1:
         pass
-
     with col2:
         st.write(df)
-
     with col3:
         pass
 
-    
     st.write("#")
     
 
@@ -227,13 +238,11 @@ if __name__ == "__main__":
         # ${ticker}
         """)
 
-        # https://towardsdatascience.com/how-to-get-stock-data-using-python-c0de1df17e75
-        #define the ticker symbol
         tickerSymbol = ticker
 
-        #get data on this ticker
         tickerData = yf.Ticker(tickerSymbol)
-        #get the historical prices for this ticker
+
+        # Get the 30 day price history for ticker
         tickerDf = tickerData.history( start=date.today() - timedelta(days=30), end=date.today())
 
 
