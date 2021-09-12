@@ -1,11 +1,13 @@
 import streamlit as st
-
 from selenium import webdriver
+
 import os
 from collections import Counter
 from datetime import date,timedelta
 from dateutil.parser import parse 
 import requests
+import time
+
 import pandas as pd
 import numpy as np
 import yfinance as yf
@@ -133,17 +135,34 @@ def get_comments(comment_list):
     
     l = comment_list.copy()
     string = ''
-    #string_list = []
     html_list = []
+
+    # Request size upper limit ranges between 500-700. Will retry a request if failed
+
+    def make_request(uri, max_retries = 5):
+        def fire_away(uri):
+            response = requests.get(uri)
+            print('STATUS:', response.status_code)
+            assert response.status_code == 200
+            return response
+        current_tries = 0
+        while current_tries < max_retries:
+            try:
+                time.sleep(1)
+                response = fire_away(uri)
+                return response
+            except:
+                time.sleep(1)
+                current_tries += 1
+        return fire_away(uri)
 
     for i in range(1,len(comment_list)+1):
 
         string += l.pop() + ','
 
-        if i % 444 == 0:
-            html = requests.get(f'https://api.pushshift.io/reddit/comment/search?ids={string}&fields=body')
+        if i % 450 == 0:
+            html = make_request(f'https://api.pushshift.io/reddit/comment/search?ids={string}&fields=body')
             html_list.append(html.json())
-
             string = ''
             
     #Getting last chunk leftover, not divisible by request size
@@ -209,9 +228,9 @@ if __name__ == "__main__":
 
     st.write("###")
 
-    st.title(f'WSB daily trending stocks for {date.today().strftime("%m/%d")}, {date.today().strftime("%Y")}' )
+    st.title(f'WSB Daily Trending Stocks for {date.today().strftime("%m/%d/%Y")}')
+   
     st.write("#")
-    
 
     url= link
     st.markdown(url, unsafe_allow_html=True)
@@ -263,10 +282,8 @@ if __name__ == "__main__":
 
         with col1:
             pass
-
         with col2:
             st.line_chart(tickerDf.Volume, use_container_width=True)
-
         with col3:
             pass
 
