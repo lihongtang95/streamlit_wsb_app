@@ -18,7 +18,7 @@ from PIL import Image
 # DATALAG default to 0
 # If PushShift is behind, set to more than 0
 
-DATALAG = 1
+DATALAG = 0
 
 
 # Create a webdriver to navigate to WSB subreddit
@@ -139,29 +139,29 @@ def get_comments(comment_list):
 
     # Request size upper limit ranges between 500-700. Will retry a request if failed
 
-    def make_request(uri, max_retries = 5):
-        def fire_away(uri):
-            response = requests.get(uri)
-            print('STATUS:', response.status_code)
-            assert response.status_code == 200
-            return response
-        current_tries = 0
-        while current_tries < max_retries:
-            try:
-                time.sleep(1)
-                response = fire_away(uri)
-                return response
-            except:
-                time.sleep(1)
-                current_tries += 1
-        return fire_away(uri)
+    # def make_request(uri, max_retries = 5):
+    #     def fire_away(uri):
+    #         response = requests.get(uri)
+    #         print('STATUS:', response.status_code)
+    #         assert response.status_code == 200
+    #         return response
+    #     current_tries = 0
+    #     while current_tries < max_retries:
+    #         try:
+    #             time.sleep(1)
+    #             response = fire_away(uri)
+    #             return response
+    #         except:
+    #             time.sleep(1)
+    #             current_tries += 1
+    #     return fire_away(uri)
 
     for i in range(1,len(comment_list)+1):
 
         string += l.pop() + ','
 
         if i % 450 == 0:
-            html = make_request(f'https://api.pushshift.io/reddit/comment/search?ids={string}&fields=body')
+            html = requests.get(f'https://api.pushshift.io/reddit/comment/search?ids={string}&fields=body')
             html_list.append(html.json())
             string = ''
             
