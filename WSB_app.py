@@ -18,7 +18,7 @@ from PIL import Image
 # DATALAG default to 0
 # If PushShift is behind, set to more than 0
 
-DATALAG = 0
+DATALAG = 1
 
 
 # Create a webdriver to navigate to WSB subreddit
